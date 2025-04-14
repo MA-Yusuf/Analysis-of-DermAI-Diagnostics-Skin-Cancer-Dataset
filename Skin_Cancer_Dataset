@@ -1,0 +1,108 @@
+-- Which age and gender group has the highest incidence of malignant skin lesions?
+SELECT gender, 
+    CASE 
+        WHEN age < 20 THEN '0-19'
+        WHEN age BETWEEN 20 AND 39 THEN '20-39'
+        WHEN age BETWEEN 40 AND 59 THEN '40-59'
+        WHEN age BETWEEN 60 AND 79 THEN '60-79'
+        ELSE '80+' 
+    END AS age_group,
+    COUNT(*) AS malignant_cases
+FROM table1 t1
+JOIN table2  t2 ON t1.patient_id = t2.patient_id
+WHERE diagnostic = 'malignant'
+GROUP BY gender, age_group
+ORDER BY malignant_cases DESC;
+
+-- What is the average diameter of each lesion?
+SELECT diagnostic,
+AVG((diameter_1 + diameter_2) / 2.0) AS avg_diameter,
+COUNT(*) AS lesion_count
+FROM table2
+GROUP BY diagnostic
+ORDER BY avg_diameter DESC;
+
+--  Which body region is mostly affected and total number of lesion for each region?
+SELECT 
+    region,
+    COUNT(*) AS total_lesions,
+    SUM(CASE WHEN (diagnostic) = 'malignant' THEN 1 ELSE 0 END) AS malignant_lesions
+FROM table2
+GROUP BY region
+ORDER BY total_lesions DESC;
+
+--  Do certain lesion characteristics (e.g., bleed, itch, grew) consistently predict malignancy?
+--SELECT 
+    table2,
+ 	AVG("itch") AS avg_itch,
+    AVG("grew") AS avg_growth,
+    AVG("hurt")AS avg_pain,
+    AVG("changed")AS avg_change,
+    AVG("bleed")AS avg_bleed,
+    AVG("elevation")AS avg_elevation
+FROM table2
+--GROUP BY diagnostic;
+
+-- How do skin cancer rates differ across ethnic backgrounds?
+SELECT 
+    background_father,
+    background_mother,
+    pesticide,
+    COUNT(*) AS total_cases,
+    SUM(CASE WHEN (diagnostic) = 'malignant' THEN 1 ELSE 0 END) AS malignant_cases
+FROM table1 t1
+JOIN table2 t2 ON t1.patient_id = t2.patient_id
+GROUP BY background_father, background_mother, pesticide
+ORDER BY malignant_cases DESC;
+
+-- How many lesions are in the data?
+SELECT COUNT (lesion_id)
+FROM table2;
+
+-- What is the total lesion for each diagnostic? 
+SELECT diagnostic,COUNT (lesion_id) "TotalLesion"
+FROM table2
+GROUP BY diagnostic
+ORDER BY "TotalLesion" DESC;
+
+-- How many male vs. female patients are there?
+SELECT gender, COUNT (distinct (patient_id))
+FROM table1
+GROUP BY gender;
+
+-- Which regions have the most recorded lesions? 
+SELECT region, COUNT (diagnostic) AS "Lesion"
+FROM table2
+GROUP BY region
+ORDER BY "Lesion" desc;
+
+-- How many lesions were biopsied?
+SELECT diagnostic,COUNT (biopsed) 
+FROM table2
+GROUP BY diagnostic;
+
+-- What’s the average lesion diameter?
+SELECT AVG((diameter_1+diameter_2)/2) AS "AVG DIAMETER"
+FROM table2;
+
+-- Do older patients tend to have larger skin lesions?
+SELECT age, AVG((diameter_1+diameter_2)/2) AS "AVG DIAMETER"
+FROM table2
+JOIN table1 on table2.patient_id=table1.patient_id
+GROUP BY age
+ORDER BY age DESC;
+
+-- Is there a relationship between smoking status and diagnostic?
+SELECT smoke, COUNT ("diagnostic") as "Lesions"
+from table1
+JOIN table2 ON table2.patient_id=table1.patient_id
+GROUP BY smoke;
+
+-- Which regions have the highest rate of skin cancer among both patients?
+SELECT region, COUNT (gender) AS "Total", diagnostic
+FROM table2
+JOIN table1 ON table1.patient_id=table2.patient_id
+WHERE 'gender' = 'male'
+GROUP BY region, diagnostic;
+
+
